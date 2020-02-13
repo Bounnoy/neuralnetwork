@@ -106,40 +106,90 @@ class NeuralNetwork:
         # Weights are populated randomly between -0.5 to 0.5 for each cell.
         #weights = np.random.rand(len(train[0]), 2)*.1-.05
         #print(weights)
-        hWeights = np.array([[.15, .20, .25, .30],
-                             [.15, .20, .25, .30]])
+        hWeights = np.full((rowsTrain, hunits, len(xTrain[0])), 0.1, dtype=float)
 
         # Delete later.
         print("\nInput > Hidden Weight Vector:\n", hWeights)
         print("Rows/Columns: ", len(hWeights), "/", len(hWeights[0]))
 
-        oWeights = np.array([[.40, .45, .50, .55],
-                             [.40, .45, .50, .55]])
+        oWeights = np.full((rowsTrain, output, hunits + 1), 0.1, dtype=float)
 
         # Delete later.
         print("\nHidden > Output Weight Vector:\n", oWeights)
         print("Rows/Columns: ", len(oWeights), "/", len(oWeights[0]))
 
         # FORWARD PROPOGATION: Sigmoid Activation
-        b = np.array([.35, .60])
-        h = np.array([])
-        for j in range(hunits):
-            offset = j * 2
-            z = np.dot(xTrain[0], np.concatenate((b[0], hWeights[0][offset:offset+2]), axis=None))
+        for i in range(rowsTrain):
+            #b = np.array([.1, .1, .1])
+            #h = np.array([1])
+            t = np.full(output, 0.1, dtype=float)
+            t[ int(tTrain[i]) ] = 0.9
+
+            # for j in range(hunits):
+            #     #offset = j * hunits
+            #     z = np.dot(hWeights[i][j], np.vstack(xTrain[i]))#, hWeights[i])#np.concatenate((b[0:hunits], hWeights[i][offset:offset + hunits]), axis=None))
+            #     print("\nz =", z)
+            #
+            #     h = np.append(h, [1/(1 + e**(-z))])
+            #     print("h[", j, "] =", h[j])
+
+            z = np.dot(hWeights[i], np.vstack(xTrain[i]))
             print("\nz =", z)
+            h = 1/(1 + e**(-z))# np.array([1, [1/(1 + e**(-z))])
+            h = np.concatenate(([[1]], h), axis=0)
+            print("h =", h)
 
-            h = np.append(h, [1/(1 + e**(-z))])
-            print("h[", j, "] =", h[j])
+            #o = np.array([])
+            #errorO = np.array([])
+            #dk = np.array([])
+            #dj = np.array([])
+            #h = np.concatenate( ([1], h), axis=None )
 
-        o = np.array([])
-        h = np.concatenate( ([1], h), axis=None )
-        for k in range(output):
-            offset = k * 2
-            z = np.dot(h, np.concatenate((b[1], oWeights[0][offset:offset+2]), axis=None))
+            print("\nh =", h)
+            print("cols =", len(h))
+            # for k in range(output):
+            #     #offset = k * output + 1
+            #     z = np.dot(oWeights[i], np.vstack(h))#, oWeights[i])#np.concatenate((b[hunits:], oWeights[i][offset:offset + output + 1]), axis=None))
+            #     print("\nz =", z)
+            #
+            #     o = np.append(o, [1/(1 + e**(-z))])
+            #     print("o[", k, "] =", o[k])
+            #
+            #     dk = np.append(dk, [o[k]*(1-o[k])*(t[k]-o[k])])
+            #     print("dk[", k, "] = ", dk[k])
+            z = np.dot(oWeights[i], np.vstack(h))
             print("\nz =", z)
+            o = 1/(1 + e**(-z))
+            print("o =", o)
+            dk = o*(1-o)*(t-o)
+            print("dk =", dk)
 
-            o = np.append(o, [1/(1 + e**(-z))])
-            print("o[", k, "] =", o[k])
+            for j in range(hunits + 1)[1:]:
+                dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))#np.append(dj, [h[j]*(1-h[j])*(np.dot(oWeights[i][offset:offset+output], dk))])
+                print("dj[", j, "] = ", dj[j])
+            #dj = h[1:]*(1-h[1:])*(np.dot(oWeights[i][:][1:], dk))
+            #print("dj =", dj)
+
+            #oWeights[i] += eta * np.dot(dk, h)
+
+
+            #print(oWeights[i])
+            # Calculate total error.
+
+            #errorO = np.append(errorO, [0.5*(t[k] - o[k])**2])
+
+
+            print("\nt[", int(tTrain[i]), "] =", t[ int(tTrain[i]) ])
+            #prediction = np.argmax(o)
+            #print(prediction)
+            #print("output error[", k, "] =", errorO[k])
+
+
+
+            #print("total output error =", np.sum(errorO))
+
+        # BACKWARD PROPOGATION
+
 
 if __name__ == '__main__':
 
@@ -182,7 +232,7 @@ if __name__ == '__main__':
     print("\nRows in test data: ", len(test))
     print("Cols in test data: ", len(test[0]))
 
-    output = 2
+    output = 1
 
     nn = NeuralNetwork(train, test)
 
