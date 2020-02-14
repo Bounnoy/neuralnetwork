@@ -240,7 +240,30 @@ if __name__ == '__main__':
 
     output = 10
 
-    nn = NeuralNetwork(train, test)
+    # EXPERIMENT 1
 
+    # 20 hidden nodes
+    nn = NeuralNetwork(train, test)
     hw1, ow1 = nn.train(0.1, 50, 20, output)
     nn.confusion(20, output, hw1, ow1)
+
+    # 50 hidden nodes
+    hw2, ow2 = nn.train(0.1, 50, 50, output)
+    nn.confusion(50, output, hw2, ow2)
+
+    # 100 hidden nodes
+    hw3, ow3 = nn.train(0.1, 50, 100, output)
+    nn.confusion(100, output, hw3, ow3)
+
+
+    # EXPERIMENT 2
+
+    # ETA 0.1, Hidden Units 100, 15000 rows
+    nn2 = NeuralNetwork(train[15000:], test)
+    hw4, ow4 = nn2.train(0.1, 50, 100, output)
+    nn2.confusion(100, output, hw4, ow4)
+
+    # ETA 0.1, Hidden Units 100, 30000 rows
+    nn3 = NeuralNetwork(train[30000:], test)
+    hw5, ow5 = nn3.train(0.1, 50, 100, output)
+    nn3.confusion(100, output, hw5, ow5)
