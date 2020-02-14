@@ -29,13 +29,13 @@ class NeuralNetwork:
         rowsTest = len(self.testData)           # Rows in the test data.
 
         # Shuffle training/testing data.
-        #np.random.shuffle(self.trainData)
+        np.random.shuffle(self.trainData)
         #np.random.shuffle(self.testData)
 
         tTrain = self.trainData[:,0]        # Set training target to first column of training data.
         tTrain = np.vstack(tTrain)          # Convert it to a vertical array.
         xTrain = self.trainData[:,1:]       # Set inputs as everything after first column.
-        #xTrain = xTrain/255                 # Divide all cells to keep calculation small. (0-1)
+        xTrain = xTrain/255                 # Divide all cells to keep calculation small. (0-1)
 
         # Do the same as above for testing set.
         tTest = self.testData[:,0]
@@ -66,8 +66,6 @@ class NeuralNetwork:
         hWeights = np.random.rand(rowsTrain, hunits, len(xTrain[0]))*.1-.05
         oWeights = np.random.rand(rowsTrain, output, hunits + 1)*.1-.05
 
-        # FORWARD PROPOGATION: Sigmoid Activation
-
         start = time.time()
         for n in range(iterations):
             correct = 0
@@ -82,14 +80,14 @@ class NeuralNetwork:
 
                 z = np.dot(oWeights[i], np.vstack(h))
                 o = 1/(1 + e**(-z))
-                dk = o*(1-o)*(t-o)
+                dk = o*(1-o)*(np.vstack(t)-o)
+                dj = h*(1-h)*( np.sum(oWeights[i] * dk))
 
                 for j in range(hunits + 1):
-                    dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))
                     oWeights[i,...,j] += eta * np.dot(dk, h[j])
 
                 for x in range(len(xTrain[i])):
-                    hWeights[i,...,x] += eta * np.dot(dj[i], xTrain[i][x])
+                    hWeights[i,...,x] += eta * np.dot(dj[1:], np.vstack(xTrain[i])[x])
 
                 # Calculate total error.
                 error = np.append(error, [0.5*(t - o)**2])
@@ -145,7 +143,7 @@ if __name__ == '__main__':
     print("\nRows in test data: ", len(test))
     print("Cols in test data: ", len(test[0]))
 
-    output = 1
+    output = 10
 
     nn = NeuralNetwork(train, test)
 
