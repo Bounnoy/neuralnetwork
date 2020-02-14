@@ -63,11 +63,8 @@ class NeuralNetwork:
 
         # Create a 2D array with the same rows as the output and cols of training data.
         # Weights are populated randomly between -0.5 to 0.5 for each cell.
-        #weights = np.random.rand(len(train[0]), 2)*.1-.05
-        #print(weights)
-        hWeights = np.full((rowsTrain, hunits, len(xTrain[0])), 0.1, dtype=float)
-
-        oWeights = np.full((rowsTrain, output, hunits + 1), 0.1, dtype=float)
+        hWeights = np.random.rand(rowsTrain, hunits, len(xTrain[0]))*.1-.05
+        oWeights = np.random.rand(rowsTrain, output, hunits + 1)*.1-.05
 
         # FORWARD PROPOGATION: Sigmoid Activation
 
