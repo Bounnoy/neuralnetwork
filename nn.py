@@ -30,7 +30,7 @@ class NeuralNetwork:
 
         # Shuffle training/testing data.
         np.random.shuffle(self.trainData)
-        #np.random.shuffle(self.testData)
+        np.random.shuffle(self.testData)
 
         tTrain = self.trainData[:,0]        # Set training target to first column of training data.
         tTrain = np.vstack(tTrain)          # Convert it to a vertical array.
@@ -41,7 +41,7 @@ class NeuralNetwork:
         tTest = self.testData[:,0]
         tTest = np.vstack(tTest)
         xTest = self.testData[:,1:]
-        #xTest = xTest/255
+        xTest = xTest/255
 
         # Replace first column with the bias.
         xTrain = np.concatenate( (np.ones((rowsTrain, 1)), xTrain), axis=1 )
@@ -66,10 +66,19 @@ class NeuralNetwork:
         hWeights = np.random.rand(rowsTrain, hunits, len(xTrain[0]))*.1-.05
         oWeights = np.random.rand(rowsTrain, output, hunits + 1)*.1-.05
 
+        print("Learning Rate = ", eta)
+        with open('results.csv', 'a') as csvFile:
+            w = csv.writer(csvFile)
+            w.writerow(["Learning Rate"] + [eta])
+            w.writerow(["Epoch"] + ["Training Accuracy"] + ["Test Accuracy"])
+
         start = time.time()
         for n in range(iterations):
             correct = 0
+            correctTest = 0
             error = np.array([])
+            errorTest = np.array([])
+
             for i in range(rowsTrain):
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTrain[i]) ] = 0.9
@@ -95,11 +104,39 @@ class NeuralNetwork:
                 if t[np.argmax(o)] == 0.9:
                     correct += 1
 
+            for a in range(rowsTest):
+                t = np.full(output, 0.1, dtype=float)
+                t[ int(tTest[a]) ] = 0.9
+
+                z = np.dot(hWeights[a], np.vstack(xTest[a]))
+                h = 1/(1 + e**(-z))
+                h = np.concatenate(([[1]], h), axis=0)
+
+                z = np.dot(oWeights[a], np.vstack(h))
+                o = 1/(1 + e**(-z))
+
+                # Calculate total error.
+                errorTest = np.append(errorTest, [0.5*(t - o)**2])
+
+                if t[np.argmax(o)] == 0.9:
+                    correctTest += 1
+
             mse = round(np.sum(error) / rowsTrain, 6)
+            mseTest = round(np.sum(errorTest) / rowsTest, 6)
+
             accuracy[n] = ( float(correct) / float(rowsTrain) ) * 100
+            accuracyTest[n] = ( float(correctTest) / float(rowsTest) ) * 100
             end = time.time()
             elapsed = round((end - start)/60, 2)
-            print("Epoch", n, ": Training Accuracy =", accuracy[n], "%, Error =", mse, "%, Elapsed Time =", elapsed, "min")
+            print("Epoch", n, ": Training Acc. =", accuracy[n], "%, Error =", mse,
+                            "%, Test Acc. =", accuracyTest[n], "%, Error =", mseTest, "%, Elapsed Time =", elapsed, "min")
+
+            with open('results.csv', 'a') as csvFile:
+                w = csv.writer(csvFile)
+                w.writerow([n] + [accuracy[n]] + [accuracyTest[n]])
+
+            if accuracy[int(n-1)] > (accuracy[n] + 1):
+                break
 
 
 if __name__ == '__main__':
