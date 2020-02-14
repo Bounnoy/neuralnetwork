@@ -164,16 +164,18 @@ class NeuralNetwork:
             dk = o*(1-o)*(t-o)
             print("dk =", dk)
 
-            for j in range(hunits + 1)[1:]:
+            for j in range(hunits + 1):
                 dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))#np.append(dj, [h[j]*(1-h[j])*(np.dot(oWeights[i][offset:offset+output], dk))])
                 print("dj[", j, "] = ", dj[j])
             #dj = h[1:]*(1-h[1:])*(np.dot(oWeights[i][:][1:], dk))
             #print("dj =", dj)
 
-            #oWeights[i] += eta * np.dot(dk, h)
+                oWeights[i,...,j] += eta * np.dot(dk, h[j])
+                print("dw k[", j, "] =", oWeights[i])
 
-
-            #print(oWeights[i])
+            for x in range(len(xTrain[i])):
+                hWeights[i,...,x] += eta * np.dot(dj[i], xTrain[i][x])
+                print("dw j[", x, "] =", hWeights[i])
             # Calculate total error.
 
             #errorO = np.append(errorO, [0.5*(t[k] - o[k])**2])
@@ -236,4 +238,4 @@ if __name__ == '__main__':
 
     nn = NeuralNetwork(train, test)
 
-    nn.train(0.1, 1, 2, output)
+    nn.train(0.2, 1, 2, output)
