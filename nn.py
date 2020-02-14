@@ -137,7 +137,73 @@ class NeuralNetwork:
 
             if accuracy[int(n-1)] > (accuracy[n] + 1):
                 break
+        return hWeights, oWeights
 
+    # Build the confusion matrix.
+    def confusion(self, hunits, output, hWeights, oWeights):
+        if (len(self.testData[0]) != len(self.trainData[0])):
+            print("Error: Training and test data structure does not match.")
+            return
+
+        rowsTest = len(self.testData)
+        np.random.shuffle(self.testData)    # Shuffle test data.
+        tTest = self.testData[:,0]              # Set test target to first column of test data.
+        tTest = np.vstack(tTest)                    # Convert it to a vertical array.
+        xTest = self.testData[:,1:]             # Set inputs as everything after the first column.
+        xTest = xTest/255                           # Divide all cells to keep calculation small. (0-1)
+
+        # Replace first column with the bias.
+        xTest = np.concatenate( (np.ones((rowsTest, 1)), xTest), axis=1 )
+
+        # PREPARE HIDDEN LAYER
+        hTest = np.zeros((rowsTest, hunits))
+
+        # Replace first column with the bias.
+        hTest = np.concatenate( (np.ones((rowsTest, 1)), hTest), axis=1 )
+
+        # PREPARE OUTPUT LAYER
+        oTest = np.zeros((rowsTest, output))
+
+        matrix = np.zeros((output, output)) # Build our matrix.
+        testAccuracy = 0
+
+        for a in range(rowsTest):
+            t = np.full(output, 0.1, dtype=float)
+            t[ int(tTest[a]) ] = 0.9
+
+            z = np.dot(hWeights[a], np.vstack(xTest[a]))
+            h = 1/(1 + e**(-z))
+            h = np.concatenate(([[1]], h), axis=0)
+
+            z = np.dot(oWeights[a], np.vstack(h))
+            o = 1/(1 + e**(-z))
+
+            prediction = np.argmax(o)
+            if t[prediction] == 0.9:
+                correctTest += 1
+
+            # Plot our data in the table if correct prediction.
+            matrix[int(prediction)][int(tTest[a])] += 1
+
+        # Calculate test accuracy.
+        accuracy = int( (float(correctTest)/float(rowsTest)) * 100)
+
+        print("Final Accuracy = ", accuracy, "%")
+
+        np.set_printoptions(suppress = True)
+        print("\nConfusion Matrix")
+        print(matrix, "\n")
+
+        with open('results.csv', 'a') as csvFile:
+            w = csv.writer(csvFile)
+            w.writerow([])
+            w.writerow(["Confusion Matrix"])
+            for j in range(output):
+                w.writerow(matrix[j,:])
+            w.writerow(["Final Accuracy"] + [accuracy])
+            w.writerow([])
+
+        return
 
 if __name__ == '__main__':
 
@@ -172,16 +238,9 @@ if __name__ == '__main__':
     test = pickle.load(file)
     file.close()
 
-    # Delete later.
-    print("\nRows in training data: ", len(train))
-    print("Cols in training data: ", len(train[0]))
-
-    # Delete later.
-    print("\nRows in test data: ", len(test))
-    print("Cols in test data: ", len(test[0]))
-
     output = 10
 
     nn = NeuralNetwork(train, test)
 
-    nn.train(0.1, 50, 20, output)
+    hw1, ow1 = nn.train(0.1, 50, 20, output)
+    nn.confusion(20, output, hw1, ow1)
