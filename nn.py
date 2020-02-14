@@ -119,77 +119,85 @@ class NeuralNetwork:
         print("Rows/Columns: ", len(oWeights), "/", len(oWeights[0]))
 
         # FORWARD PROPOGATION: Sigmoid Activation
-        for i in range(rowsTrain):
-            #b = np.array([.1, .1, .1])
-            #h = np.array([1])
-            t = np.full(output, 0.1, dtype=float)
-            t[ int(tTrain[i]) ] = 0.9
 
-            # for j in range(hunits):
-            #     #offset = j * hunits
-            #     z = np.dot(hWeights[i][j], np.vstack(xTrain[i]))#, hWeights[i])#np.concatenate((b[0:hunits], hWeights[i][offset:offset + hunits]), axis=None))
-            #     print("\nz =", z)
-            #
-            #     h = np.append(h, [1/(1 + e**(-z))])
-            #     print("h[", j, "] =", h[j])
+        for n in range(iterations):
+            correct = 0
+            for i in range(rowsTrain):
+                #b = np.array([.1, .1, .1])
+                #h = np.array([1])
+                t = np.full(output, 0.1, dtype=float)
+                t[ int(tTrain[i]) ] = 0.9
 
-            z = np.dot(hWeights[i], np.vstack(xTrain[i]))
-            print("\nz =", z)
-            h = 1/(1 + e**(-z))# np.array([1, [1/(1 + e**(-z))])
-            h = np.concatenate(([[1]], h), axis=0)
-            print("h =", h)
+                # for j in range(hunits):
+                #     #offset = j * hunits
+                #     z = np.dot(hWeights[i][j], np.vstack(xTrain[i]))#, hWeights[i])#np.concatenate((b[0:hunits], hWeights[i][offset:offset + hunits]), axis=None))
+                #     print("\nz =", z)
+                #
+                #     h = np.append(h, [1/(1 + e**(-z))])
+                #     print("h[", j, "] =", h[j])
 
-            #o = np.array([])
-            #errorO = np.array([])
-            #dk = np.array([])
-            #dj = np.array([])
-            #h = np.concatenate( ([1], h), axis=None )
+                z = np.dot(hWeights[i], np.vstack(xTrain[i]))
+                print("\nz =", z)
+                h = 1/(1 + e**(-z))# np.array([1, [1/(1 + e**(-z))])
+                h = np.concatenate(([[1]], h), axis=0)
+                print("h =", h)
 
-            print("\nh =", h)
-            print("cols =", len(h))
-            # for k in range(output):
-            #     #offset = k * output + 1
-            #     z = np.dot(oWeights[i], np.vstack(h))#, oWeights[i])#np.concatenate((b[hunits:], oWeights[i][offset:offset + output + 1]), axis=None))
-            #     print("\nz =", z)
-            #
-            #     o = np.append(o, [1/(1 + e**(-z))])
-            #     print("o[", k, "] =", o[k])
-            #
-            #     dk = np.append(dk, [o[k]*(1-o[k])*(t[k]-o[k])])
-            #     print("dk[", k, "] = ", dk[k])
-            z = np.dot(oWeights[i], np.vstack(h))
-            print("\nz =", z)
-            o = 1/(1 + e**(-z))
-            print("o =", o)
-            dk = o*(1-o)*(t-o)
-            print("dk =", dk)
+                #o = np.array([])
+                errorO = np.array([])
+                #dk = np.array([])
+                #dj = np.array([])
+                #h = np.concatenate( ([1], h), axis=None )
 
-            for j in range(hunits + 1):
-                dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))#np.append(dj, [h[j]*(1-h[j])*(np.dot(oWeights[i][offset:offset+output], dk))])
-                print("dj[", j, "] = ", dj[j])
-            #dj = h[1:]*(1-h[1:])*(np.dot(oWeights[i][:][1:], dk))
-            #print("dj =", dj)
+                print("\nh =", h)
+                print("cols =", len(h))
+                # for k in range(output):
+                #     #offset = k * output + 1
+                #     z = np.dot(oWeights[i], np.vstack(h))#, oWeights[i])#np.concatenate((b[hunits:], oWeights[i][offset:offset + output + 1]), axis=None))
+                #     print("\nz =", z)
+                #
+                #     o = np.append(o, [1/(1 + e**(-z))])
+                #     print("o[", k, "] =", o[k])
+                #
+                #     dk = np.append(dk, [o[k]*(1-o[k])*(t[k]-o[k])])
+                #     print("dk[", k, "] = ", dk[k])
+                z = np.dot(oWeights[i], np.vstack(h))
+                print("\nz =", z)
+                o = 1/(1 + e**(-z))
+                print("o =", o)
+                dk = o*(1-o)*(t-o)
+                print("dk =", dk)
 
-                oWeights[i,...,j] += eta * np.dot(dk, h[j])
-                print("dw k[", j, "] =", oWeights[i])
+                for j in range(hunits + 1):
+                    dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))#np.append(dj, [h[j]*(1-h[j])*(np.dot(oWeights[i][offset:offset+output], dk))])
+                    print("dj[", j, "] = ", dj[j])
+                #dj = h[1:]*(1-h[1:])*(np.dot(oWeights[i][:][1:], dk))
+                #print("dj =", dj)
 
-            for x in range(len(xTrain[i])):
-                hWeights[i,...,x] += eta * np.dot(dj[i], xTrain[i][x])
-                print("dw j[", x, "] =", hWeights[i])
-            # Calculate total error.
+                    oWeights[i,...,j] += eta * np.dot(dk, h[j])
+                    print("dw k[", j, "] =", oWeights[i])
 
-            #errorO = np.append(errorO, [0.5*(t[k] - o[k])**2])
+                for x in range(len(xTrain[i])):
+                    hWeights[i,...,x] += eta * np.dot(dj[i], xTrain[i][x])
+                    print("dw j[", x, "] =", hWeights[i])
+                # Calculate total error.
 
-
-            print("\nt[", int(tTrain[i]), "] =", t[ int(tTrain[i]) ])
-            #prediction = np.argmax(o)
-            #print(prediction)
-            #print("output error[", k, "] =", errorO[k])
+                errorO = np.append(errorO, [0.5*(t - o)**2])
 
 
+                print("\nt[", int(tTrain[i]), "] =", t[ int(tTrain[i]) ])
+                # prediction = np.argmax(o)
+                # print(prediction)
 
-            #print("total output error =", np.sum(errorO))
+                if t[np.argmax(o)] == 0.9:
+                    correct += 1
 
+                print("output error =", errorO)
+
+
+
+                print("total output error =", np.sum(errorO))
+            accuracy[n] = ( float(correct) / float(rowsTrain) ) * 100
+            print("Accuracy = ", accuracy[n])
         # BACKWARD PROPOGATION
 
 
