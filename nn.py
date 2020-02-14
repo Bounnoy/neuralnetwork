@@ -11,6 +11,7 @@ from math import e
 import numpy as np
 import csv
 import pickle
+import time
 
 class NeuralNetwork:
     def __init__(self, train, test):
@@ -22,12 +23,6 @@ class NeuralNetwork:
     def train(self, eta, iterations, hunits, output):
         accuracy = np.zeros(iterations)         # Training accuracy.
         accuracyTest = np.zeros(iterations)     # Test accuracy.
-
-        # Delete later.
-        print("\nTraining Accuracy: ", accuracy)
-        print("Array Size: ", len(accuracy))
-        print("\nTest Accuracy: ", accuracyTest)
-        print("Array Size: ", len(accuracyTest))
 
         # PREPARE INPUT VECTORS
         rowsTrain = len(self.trainData)         # Rows in the training data.
@@ -42,63 +37,27 @@ class NeuralNetwork:
         xTrain = self.trainData[:,1:]       # Set inputs as everything after first column.
         #xTrain = xTrain/255                 # Divide all cells to keep calculation small. (0-1)
 
-        # Delete later.
-        print("\nTraining Targets:\n", tTrain)
-        print("Rows/Columns: ", len(tTrain), "/", len(tTrain[0]))
-        print("\nTraining Input:\n", xTrain)
-        print("Rows/Columns: ", len(xTrain), "/", len(xTrain[0]))
-
         # Do the same as above for testing set.
         tTest = self.testData[:,0]
         tTest = np.vstack(tTest)
         xTest = self.testData[:,1:]
         #xTest = xTest/255
 
-        # Delete later.
-        print("\nTest Targets:\n", tTest)
-        print("Rows/Columns: ", len(tTest), "/", len(tTest[0]))
-        print("\nTest Input:\n", xTest)
-        print("Rows/Columns: ", len(xTest), "/", len(xTest[0]))
-
         # Replace first column with the bias.
         xTrain = np.concatenate( (np.ones((rowsTrain, 1)), xTrain), axis=1 )
         xTest = np.concatenate( (np.ones((rowsTest, 1)), xTest), axis=1 )
-
-        # Delete later.
-        print("\nTraining Input with Bias:\n", xTrain)
-        print("Rows/Columns: ", len(xTrain), "/", len(xTrain[0]))
-        print("\nTest Input with Bias:\n", xTest)
-        print("Rows/Columns: ", len(xTest), "/", len(xTest[0]))
 
         # PREPARE HIDDEN LAYER
         hTrain = np.zeros((rowsTrain, hunits))
         hTest = np.zeros((rowsTest, hunits))
 
-        # Delete later.
-        print("\nTraining Hidden Layer:\n", hTrain)
-        print("Rows/Columns: ", len(hTrain), "/", len(hTrain[0]))
-        print("\nTest Hidden Layer:\n", hTest)
-        print("Rows/Columns: ", len(hTest), "/", len(hTest[0]))
-
         # Replace first column with the bias.
         hTrain = np.concatenate( (np.ones((rowsTrain, 1)), hTrain), axis=1 )
         hTest = np.concatenate( (np.ones((rowsTest, 1)), hTest), axis=1 )
 
-        # Delete later.
-        print("\nTraining Hidden Layer with Bias:\n", hTrain)
-        print("Rows/Columns: ", len(hTrain), "/", len(hTrain[0]))
-        print("\nTest Hidden Layer with Bias:\n", hTest)
-        print("Rows/Columns: ", len(hTest), "/", len(hTest[0]))
-
         # PREPARE OUTPUT LAYER
         oTrain = np.zeros((rowsTrain, output))
         oTest = np.zeros((rowsTest, output))
-
-        # Delete later.
-        print("\nTraining Output Layer:\n", oTrain)
-        print("Rows/Columns: ", len(oTrain), "/", len(oTrain[0]))
-        print("\nTest Output Layer:\n", oTest)
-        print("Rows/Columns: ", len(oTest), "/", len(oTest[0]))
 
         # PREPARE WEIGHT VECTORS
 
@@ -108,97 +67,44 @@ class NeuralNetwork:
         #print(weights)
         hWeights = np.full((rowsTrain, hunits, len(xTrain[0])), 0.1, dtype=float)
 
-        # Delete later.
-        print("\nInput > Hidden Weight Vector:\n", hWeights)
-        print("Rows/Columns: ", len(hWeights), "/", len(hWeights[0]))
-
         oWeights = np.full((rowsTrain, output, hunits + 1), 0.1, dtype=float)
-
-        # Delete later.
-        print("\nHidden > Output Weight Vector:\n", oWeights)
-        print("Rows/Columns: ", len(oWeights), "/", len(oWeights[0]))
 
         # FORWARD PROPOGATION: Sigmoid Activation
 
+        start = time.time()
         for n in range(iterations):
             correct = 0
+            error = np.array([])
             for i in range(rowsTrain):
-                #b = np.array([.1, .1, .1])
-                #h = np.array([1])
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTrain[i]) ] = 0.9
 
-                # for j in range(hunits):
-                #     #offset = j * hunits
-                #     z = np.dot(hWeights[i][j], np.vstack(xTrain[i]))#, hWeights[i])#np.concatenate((b[0:hunits], hWeights[i][offset:offset + hunits]), axis=None))
-                #     print("\nz =", z)
-                #
-                #     h = np.append(h, [1/(1 + e**(-z))])
-                #     print("h[", j, "] =", h[j])
-
                 z = np.dot(hWeights[i], np.vstack(xTrain[i]))
-                print("\nz =", z)
-                h = 1/(1 + e**(-z))# np.array([1, [1/(1 + e**(-z))])
+                h = 1/(1 + e**(-z))
                 h = np.concatenate(([[1]], h), axis=0)
-                print("h =", h)
 
-                #o = np.array([])
-                errorO = np.array([])
-                #dk = np.array([])
-                #dj = np.array([])
-                #h = np.concatenate( ([1], h), axis=None )
-
-                print("\nh =", h)
-                print("cols =", len(h))
-                # for k in range(output):
-                #     #offset = k * output + 1
-                #     z = np.dot(oWeights[i], np.vstack(h))#, oWeights[i])#np.concatenate((b[hunits:], oWeights[i][offset:offset + output + 1]), axis=None))
-                #     print("\nz =", z)
-                #
-                #     o = np.append(o, [1/(1 + e**(-z))])
-                #     print("o[", k, "] =", o[k])
-                #
-                #     dk = np.append(dk, [o[k]*(1-o[k])*(t[k]-o[k])])
-                #     print("dk[", k, "] = ", dk[k])
                 z = np.dot(oWeights[i], np.vstack(h))
-                print("\nz =", z)
                 o = 1/(1 + e**(-z))
-                print("o =", o)
                 dk = o*(1-o)*(t-o)
-                print("dk =", dk)
 
                 for j in range(hunits + 1):
-                    dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))#np.append(dj, [h[j]*(1-h[j])*(np.dot(oWeights[i][offset:offset+output], dk))])
-                    print("dj[", j, "] = ", dj[j])
-                #dj = h[1:]*(1-h[1:])*(np.dot(oWeights[i][:][1:], dk))
-                #print("dj =", dj)
-
+                    dj = h*(1-h)*(np.dot(oWeights[i,...,j], dk))
                     oWeights[i,...,j] += eta * np.dot(dk, h[j])
-                    print("dw k[", j, "] =", oWeights[i])
 
                 for x in range(len(xTrain[i])):
                     hWeights[i,...,x] += eta * np.dot(dj[i], xTrain[i][x])
-                    print("dw j[", x, "] =", hWeights[i])
+
                 # Calculate total error.
-
-                errorO = np.append(errorO, [0.5*(t - o)**2])
-
-
-                print("\nt[", int(tTrain[i]), "] =", t[ int(tTrain[i]) ])
-                # prediction = np.argmax(o)
-                # print(prediction)
+                error = np.append(error, [0.5*(t - o)**2])
 
                 if t[np.argmax(o)] == 0.9:
                     correct += 1
 
-                print("output error =", errorO)
-
-
-
-                print("total output error =", np.sum(errorO))
+            mse = round(np.sum(error) / rowsTrain, 6)
             accuracy[n] = ( float(correct) / float(rowsTrain) ) * 100
-            print("Accuracy = ", accuracy[n])
-        # BACKWARD PROPOGATION
+            end = time.time()
+            elapsed = round((end - start)/60, 2)
+            print("Epoch", n, ": Training Accuracy =", accuracy[n], "%, Error =", mse, "%, Elapsed Time =", elapsed, "min")
 
 
 if __name__ == '__main__':
@@ -246,4 +152,4 @@ if __name__ == '__main__':
 
     nn = NeuralNetwork(train, test)
 
-    nn.train(0.2, 1, 2, output)
+    nn.train(0.1, 50, 20, output)
