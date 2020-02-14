@@ -83,42 +83,41 @@ class NeuralNetwork:
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTrain[i]) ] = 0.9
 
-                z = np.dot(hWeights[i], np.vstack(xTrain[i]))
+                z = hWeights[i].dot(np.vstack(xTrain[i]))
                 h = 1/(1 + e**(-z))
                 h = np.concatenate(([[1]], h), axis=0)
 
-                z = np.dot(oWeights[i], np.vstack(h))
+                z = oWeights[i].dot(np.vstack(h))
                 o = 1/(1 + e**(-z))
                 dk = o*(1-o)*(np.vstack(t)-o)
-                dj = h*(1-h)*( np.sum(oWeights[i] * dk))
+                dj = h*(1-h)*(np.sum(oWeights[i] * dk))
 
-                for j in range(hunits + 1):
-                    oWeights[i,...,j] += eta * np.dot(dk, h[j])
-
-                for x in range(len(xTrain[i])):
-                    hWeights[i,...,x] += eta * np.dot(dj[1:], np.vstack(xTrain[i])[x])
-
+                oWeights[i] += eta * np.outer(dk, h)
+                hWeights[i] += eta * np.outer(dj[1:], xTrain[i])
+                
                 # Calculate total error.
                 error = np.append(error, [0.5*(t - o)**2])
 
-                if t[np.argmax(o)] == 0.9:
+                pr = np.argmax(o)
+                if pr == tTrain[i]:
                     correct += 1
 
             for a in range(rowsTest):
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTest[a]) ] = 0.9
 
-                z = np.dot(hWeights[a], np.vstack(xTest[a]))
+                z = hWeights[a].dot(np.vstack(xTest[a]))
                 h = 1/(1 + e**(-z))
                 h = np.concatenate(([[1]], h), axis=0)
 
-                z = np.dot(oWeights[a], np.vstack(h))
+                z = oWeights[a].dot(np.vstack(h))
                 o = 1/(1 + e**(-z))
 
                 # Calculate total error.
                 errorTest = np.append(errorTest, [0.5*(t - o)**2])
 
-                if t[np.argmax(o)] == 0.9:
+                pr = np.argmax(o)
+                if pr == tTest[a]:
                     correctTest += 1
 
             mse = round(np.sum(error) / rowsTrain, 6)
@@ -171,15 +170,15 @@ class NeuralNetwork:
             t = np.full(output, 0.1, dtype=float)
             t[ int(tTest[a]) ] = 0.9
 
-            z = np.dot(hWeights[a], np.vstack(xTest[a]))
+            z = hWeights[a].dot(np.vstack(xTest[a]))
             h = 1/(1 + e**(-z))
             h = np.concatenate(([[1]], h), axis=0)
 
-            z = np.dot(oWeights[a], np.vstack(h))
+            z = oWeights[a].dot(np.vstack(h))
             o = 1/(1 + e**(-z))
 
-            prediction = np.argmax(o)
-            if t[prediction] == 0.9:
+            pr = np.argmax(o)
+            if pr == tTest[a]:
                 correctTest += 1
 
             # Plot our data in the table if correct prediction.
