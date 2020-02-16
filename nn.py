@@ -61,10 +61,11 @@ class NeuralNetwork:
 
         # PREPARE WEIGHT VECTORS
 
-        # Create a 2D array with the same rows as the output and cols of training data.
+        # Create 2 sets of 2D arrays. One from the input to the hidden layer and
+        # the other from the hidden layer to the output layer.
         # Weights are populated randomly between -0.5 to 0.5 for each cell.
-        hWeights = np.random.rand(rowsTrain, hunits, len(xTrain[0]))*.1-.05
-        oWeights = np.random.rand(rowsTrain, output, hunits + 1)*.1-.05
+        hWeights = np.random.rand(hunits, len(xTrain[0]))*.1-.05
+        oWeights = np.random.rand(output, hunits + 1)*.1-.05
 
         print("Learning Rate = ", eta)
         with open('results.csv', 'a') as csvFile:
@@ -80,55 +81,73 @@ class NeuralNetwork:
             errorTest = np.array([])
 
             for i in range(rowsTrain):
+
+                # Set training targets.
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTrain[i]) ] = 0.9
 
-                z = hWeights[i].dot(np.vstack(xTrain[i]))
+                # Input to hidden layer sigmoid activation.
+                z = np.dot(hWeights, np.vstack(xTrain[i]))
                 h = 1/(1 + e**(-z))
                 h = np.concatenate(([[1]], h), axis=0)
 
-                z = oWeights[i].dot(np.vstack(h))
+                # Hidden to output layer sigmoid activation.
+                z = np.dot(oWeights, np.vstack(h))
                 o = 1/(1 + e**(-z))
+
+                # Compute error terms.
                 dk = o*(1-o)*(np.vstack(t)-o)
-                dj = h*(1-h)*(np.sum(oWeights[i] * dk))
+                dj = h*(1-h)*(np.sum(oWeights * dk))
 
-                oWeights[i] += eta * np.outer(dk, h)
-                hWeights[i] += eta * np.outer(dj[1:], xTrain[i])
-                
+                # Update weights.
+                oWeights += eta * np.outer(dk, h)
+                hWeights += eta * np.outer(dj[1:], xTrain[i])
+
                 # Calculate total error.
-                error = np.append(error, [0.5*(t - o)**2])
+                #error = np.append(error, [0.5*(t - o)**2])
 
+                # Classify prediction.
                 pr = np.argmax(o)
                 if pr == tTrain[i]:
                     correct += 1
 
             for a in range(rowsTest):
+
+                # Set training targets.
                 t = np.full(output, 0.1, dtype=float)
                 t[ int(tTest[a]) ] = 0.9
 
-                z = hWeights[a].dot(np.vstack(xTest[a]))
+                # Input to hidden layer sigmoid activation.
+                z = np.dot(hWeights, np.vstack(xTest[a]))
                 h = 1/(1 + e**(-z))
                 h = np.concatenate(([[1]], h), axis=0)
 
-                z = oWeights[a].dot(np.vstack(h))
+                # Hidden to output layer sigmoid activation.
+                z = np.dot(oWeights, np.vstack(h))
                 o = 1/(1 + e**(-z))
 
                 # Calculate total error.
-                errorTest = np.append(errorTest, [0.5*(t - o)**2])
+                #errorTest = np.append(errorTest, [0.5*(t - o)**2])
 
+                # Classify prediction.
                 pr = np.argmax(o)
                 if pr == tTest[a]:
                     correctTest += 1
 
-            mse = round(np.sum(error) / rowsTrain, 6)
-            mseTest = round(np.sum(errorTest) / rowsTest, 6)
+            # Determine mean sum squared error.
+            #mse = round(np.sum(error) / rowsTrain, 6)
+            #mseTest = round(np.sum(errorTest) / rowsTest, 6)
 
+            # Calculate accuracy and elasped time.
             accuracy[n] = ( float(correct) / float(rowsTrain) ) * 100
             accuracyTest[n] = ( float(correctTest) / float(rowsTest) ) * 100
             end = time.time()
             elapsed = round((end - start)/60, 2)
-            print("Epoch", n, ": Training Acc. =", accuracy[n], "%, Error =", mse,
-                            "%, Test Acc. =", accuracyTest[n], "%, Error =", mseTest, "%, Elapsed Time =", elapsed, "min")
+
+            print("Epoch", n, ": Training Acc. =", int(accuracy[n]), "%, Test Acc. =", int(accuracyTest[n]), "%, Elapsed Time =", elapsed, "min")
+
+            # print("Epoch", n, ": Training Acc. =", int(accuracy[n]), "%, Error =", mse,
+            #                 "%, Test Acc. =", int(accuracyTest[n]), "%, Error =", mseTest, "%, Elapsed Time =", elapsed, "min")
 
             with open('results.csv', 'a') as csvFile:
                 w = csv.writer(csvFile)
@@ -167,14 +186,15 @@ class NeuralNetwork:
         testAccuracy = 0
 
         for a in range(rowsTest):
+            correctTest = 0
             t = np.full(output, 0.1, dtype=float)
             t[ int(tTest[a]) ] = 0.9
 
-            z = hWeights[a].dot(np.vstack(xTest[a]))
+            z = np.dot(hWeights, np.vstack(xTest[a]))
             h = 1/(1 + e**(-z))
             h = np.concatenate(([[1]], h), axis=0)
 
-            z = oWeights[a].dot(np.vstack(h))
+            z = np.dot(oWeights, np.vstack(h))
             o = 1/(1 + e**(-z))
 
             pr = np.argmax(o)
@@ -182,7 +202,7 @@ class NeuralNetwork:
                 correctTest += 1
 
             # Plot our data in the table if correct prediction.
-            matrix[int(prediction)][int(tTest[a])] += 1
+            matrix[int(pr)][int(tTest[a])] += 1
 
         # Calculate test accuracy.
         accuracy = int( (float(correctTest)/float(rowsTest)) * 100)
